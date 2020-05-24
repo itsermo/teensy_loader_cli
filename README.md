@@ -50,7 +50,41 @@ Other Linux systems may [require other package installation](https://forum.pjrc.
   
 ## Compiling From Source (macOS)
 
-TODO: Coming later
+There are two ways to compile on macOS.  You can compile using Apple's IOKit framework to handle USB flashing, or you can use libusb (which requires an install of homebrew).  The most straightforward method is to use Apple's IOKit framework, which is enabled by default in the CMakeLists.txt under the CMake flag `USE_APPLE_IOKIT`.
+
+### macOS IOKit Method (easier if you already have XCode & CMake installed)
+
+You must first install XCode and/or XCode Command Line Tools. CMake and use the GUI to configure and build the project, or make sure cmake is in your path and run commands from terminal:
+
+1. Open Terminal and in the teensy_loader_cli folder run the command
+
+    `cmake -B build-macos`
+    
+    by default, the CMake command line generator will generate a Unix Makefile.  That's ok and can be used.  Alternatively you can create an XCode project if you prefer:
+    
+    `cmake -b build-macos -G "Xcode"
+    
+2. Build using the command
+
+     `cmake --build ./build-macos --config Release`
+
+### macOS libusb Method
+
+1. Install homebrew by typing this command into the terminal
+
+    `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`
+    
+2. Use homebrew package manager to install cmake and libusb
+
+   `brew install cmake libusb`
+   
+3. Open Terminal and in the teensy_loader_cli folder run the command
+    
+    `cmake -B build-macos -DUSE_APPLE_IOKIT=OFF`
+    
+4. Build using the command
+
+     `cmake --build ./build-macos --config Release`
 
 ## Usage and Command Line Options
 
