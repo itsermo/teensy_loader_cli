@@ -54,7 +54,7 @@ There are two ways to compile on macOS.  You can compile using Apple's IOKit fra
 
 ### macOS IOKit Method (easier if you already have XCode & CMake installed)
 
-You must first install XCode and/or XCode Command Line Tools. CMake and use the GUI to configure and build the project, or make sure cmake is in your path and run commands from terminal:
+You must first install XCode and/or XCode Command Line Tools & CMake.  You can use the CMake GUI to configure and build the project, or run commands from terminal (make sure `cmake` command is in your path):
 
 1. Open Terminal and in the teensy_loader_cli folder run the command
 
