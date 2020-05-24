@@ -341,8 +341,8 @@ int soft_reboot(void)
 		return 0;
 	}
 
-	char reboot_command = 134;
-	int response = usb_control_msg(serial_handle, 0x21, 0x20, 0, 0, &reboot_command, 1, 10000);
+	unsigned char reboot_command = 134;
+	int response = usb_control_msg(serial_handle, 0x21, 0x20, 0, 0, (char*)&reboot_command, 1, 10000);
 
 	usb_release_interface(serial_handle, 0);
 	usb_close(serial_handle);
@@ -910,13 +910,13 @@ parse_hex_line(char *line)
 	if (line[0] != ':') return 0;
 	if (strlen(line) < 11) return 0;
 	ptr = line+1;
-	if (!sscanf(ptr, "%02x", &len)) return 0;
+	if (!sscanf(ptr, "%02x", (unsigned int*)&len)) return 0;
 	ptr += 2;
 	if ((int)strlen(line) < (11 + (len * 2)) ) return 0;
-	if (!sscanf(ptr, "%04x", &addr)) return 0;
+	if (!sscanf(ptr, "%04x", (unsigned int*)&addr)) return 0;
 	ptr += 4;
 	  /* printf("Line: length=%d Addr=%d\n", len, addr); */
-	if (!sscanf(ptr, "%02x", &code)) return 0;
+	if (!sscanf(ptr, "%02x", (unsigned int*)&code)) return 0;
 	if (addr + extended_addr + len >= MAX_MEMORY_SIZE) return 0;
 	ptr += 2;
 	sum = (len & 255) + ((addr >> 8) & 255) + (addr & 255) + (code & 255);
@@ -926,19 +926,19 @@ parse_hex_line(char *line)
 			return 1;
 		}
 		if (code == 2 && len == 2) {
-			if (!sscanf(ptr, "%04x", &i)) return 1;
+			if (!sscanf(ptr, "%04x", (unsigned int*)&i)) return 1;
 			ptr += 4;
 			sum += ((i >> 8) & 255) + (i & 255);
-			if (!sscanf(ptr, "%02x", &cksum)) return 1;
+			if (!sscanf(ptr, "%02x", (unsigned int*)&cksum)) return 1;
 			if (((sum & 255) + (cksum & 255)) & 255) return 1;
 			extended_addr = i << 4;
 			//printf("ext addr = %05X\n", extended_addr);
 		}
 		if (code == 4 && len == 2) {
-			if (!sscanf(ptr, "%04x", &i)) return 1;
+			if (!sscanf(ptr, "%04x", (unsigned int*)&i)) return 1;
 			ptr += 4;
 			sum += ((i >> 8) & 255) + (i & 255);
-			if (!sscanf(ptr, "%02x", &cksum)) return 1;
+			if (!sscanf(ptr, "%02x", (unsigned int*)&cksum)) return 1;
 			if (((sum & 255) + (cksum & 255)) & 255) return 1;
 			extended_addr = i << 16;
 			if (code_size > 1048576 && block_size >= 1024 &&
@@ -952,7 +952,7 @@ parse_hex_line(char *line)
 	}
 	byte_count += len;
 	while (num != len) {
-		if (sscanf(ptr, "%02x", &i) != 1) return 0;
+		if (sscanf(ptr, "%02x", (unsigned int*)&i) != 1) return 0;
 		i &= 255;
 		firmware_image[addr + extended_addr + num] = (unsigned char)i;
 		firmware_mask[addr + extended_addr + num] = 1;
@@ -961,7 +961,7 @@ parse_hex_line(char *line)
 		(num)++;
 		if (num >= 256) return 0;
 	}
-	if (!sscanf(ptr, "%02x", &cksum)) return 0;
+	if (!sscanf(ptr, "%02x", (unsigned int*)&cksum)) return 0;
 	if (((sum & 255) + (cksum & 255)) & 255) return 0; /* checksum error */
 	return 1;
 }
