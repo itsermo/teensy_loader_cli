@@ -1,19 +1,56 @@
-# Teensy Loader - Command Line Version#
+# Teensy Loader - Command Line Version #
 
 The Teensy Loader is available in a command line version for advanced users who want to automate programming, typically using a Makefile. For most uses, the graphical version in Automatic Mode is much easier. 
 
 http://www.pjrc.com/teensy/loader_cli.html
 
-## Compiling From Source
+This version has CMake support and builds on Visual Studio/Windows platforms with no need for mingw.
 
-The command line version is provided as source code for most platforms. To compile, you must have gcc or mingw installed. Edit the Makefile to select your operating system, then just type "make". If you have a BSD compatible make, replace "Makefile" with "Makefile.bsd".
-Version 2.0 has been tested on Ubuntu 9.04, Mac OS-X 10.5, Windows XP, FreeBSD 8.0, OpenBSD (20-Jan-2010 snapshot), and NetBSD 5.0.1. All versions of NT-based Windows with USB support (2000 and later) are believed to work.
+The command line version is provided as source code for most platforms. To compile, you must have gcc or visual studio installed.
 
-On Ubuntu, you may need to install "libusb-dev" to compile.
+## Compiling From Source (Windows & Visual Studio)
 
-  `sudo apt-get install libusb-dev`
+1. Install Visual Studio 2019 with
+  - The latest C++ x86/x64/ARM/ARM64 build tools (as determined by your platform)
+  - The Windows SDK required by the Windows Driver Development Kit (WinDDK).  As of today, that version is Windows 10 SDK (10.0.19041.1)
+2. Install the Windows Driver Development Kit - https://docs.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk
+3. Install latest CMake tools - https://cmake.org/download/
+4. Generate the project using CMake gui or command line as follows:
+    
+    `cmake -B build-x64 -A x64` (substitute x64 with Win32, ARM, or ARM64 for your target platform)
+ 
+5. Open the solution from the new `build-x64` folder using Visual Studio or with the command:
+  
+    `cmake -open ./build-x64`
+  
+6. You can build from Visual Studio, or just use this command to build directly without the need for opening the solution:
+  
+    `cmake --build ./build-x64 --config Release`
+  
+## Compiling From Source (Linux)
+
+1. On Ubuntu, you may need to install "libusb-dev" to compile:
+
+    `sudo apt-get install libusb-dev`
 
 Other Linux systems may [require other package installation](https://forum.pjrc.com/threads/40965-Linux-64bit-Arduino-1-6-13-Issues-starting-Teensy-Loader-and-libusb-0-1-so-4-error?p=127873&viewfull=1#post127873) to compile.
+
+2. Use CMake to generate the project:
+
+    `cmake -B build-linux`
+  
+3. Run the build using CMake:
+
+    `cmake --build ./build-linux --config Release`
+  
+3. OR run the make command yourself from the `build-linux` folder:
+
+    `cd build-linux`
+    `make`
+  
+## Compiling From Source (macOS)
+
+TODO: Coming later
 
 ## Usage and Command Line Options
 
@@ -66,31 +103,10 @@ On Macintosh OS-X 10.8, Casey Rodarmor shared this tip:
 I recently had a little trouble getting the teensy cli loader working on Mac OSX 10.8. Apple moved the location of the SDKs around, so that they now reside inside of the xcode app itself. This is the line in the makefile that got it working for me:
 SDK ?= /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk
 
-## Makefile Integration
+## CMake Integration
 
-You can use teensy_loader_cli from your Makefile, to autoamtically program your freshly compiled code. Here is an example:
-
-```
-# Create final output files (.hex, .eep) from ELF output file.
-%.hex: %.elf
-        @echo
-        @echo $(MSG_FLASH) $@
-        $(OBJCOPY) -O $(FORMAT) -R .eeprom -R .fuse -R .lock -R .signature $< $@
-        teensy_loader_cli --mcu=$(MCU) -w -v $@
-```
-
-Make requires the white space before any command to be a tab character (not 8 spaces), so please make sure you use tab.
-
-If you connect a second Teensy using the rebootor code, add the "-r" option and your code will always be programmed automaticallly without having to manually press the reset button!
-
-Scott Bronson contributed a [Makefile patch](http://www.pjrc.com/teensy/loader_cli.makefile.patch) to allow "make program" to work for the blinky example.
+TODO: Make CMake targets that can be integrated into your CMake project list for programming teensy
 
 ## PlatformIO Integration
 
 [Platformio](http://platformio.org) includes support for loading via teensy_loader.
-
-## Errata
-
-Compiling on Mac OS-X 10.6 may require adding "-mmacosx-version-min=10.5" to the Makefile. Thanks to Morgan Sutherland for reporting this.
-
-`$(CC) $(CFLAGS) -DUSE_APPLE_IOKIT -isysroot $(SDK) -o teensy_loader_cli teensy_loader_cli.c -Wl,-syslibroot,$(SDK) -framework IOKit -framework CoreFoundation -mmacosx-version-min=10.5`
