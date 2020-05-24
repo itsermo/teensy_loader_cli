@@ -6,7 +6,7 @@ http://www.pjrc.com/teensy/loader_cli.html
 
 The command line version is provided as source code for most platforms. To compile, you must have gcc or visual studio installed.
 
-* Note: * This version uses CMake to generate projects, and builds on Visual Studio/Windows platforms with no need for mingw.  In order to support Visual Studio, we have added some POSIX compatibility code (`getopt.h` and `unistd.h`) in the folder `unistd-win32`.
+*Note:* This version uses CMake to generate projects, and builds on Visual Studio/Windows platforms with no need for mingw.  In order to support Visual Studio, we have added some POSIX compatibility code (`getopt.h` and `unistd.h`) in the folder `unistd-win32`.
 
 ## Compiling From Source (Windows & Visual Studio)
 
