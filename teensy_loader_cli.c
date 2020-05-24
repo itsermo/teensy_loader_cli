@@ -58,7 +58,7 @@ int hard_reboot(void);
 int soft_reboot(void);
 
 // Intel Hex File Functions
-int read_intel_hex(const char *filename);
+int read_intel_hex(const char *filepath);
 int ihex_bytes_within_range(int begin, int end);
 void ihex_get_data(int addr, int len, unsigned char *bytes);
 int memory_is_blank(int addr, int block_size);
@@ -370,8 +370,14 @@ int soft_reboot(void)
 // http://msdn.microsoft.com/en-us/library/ms790932.aspx
 #include <windows.h>
 #include <setupapi.h>
+#include <sdkddkver.h>
+#if defined(NTDDI_WIN10)
+#include <hidsdi.h>
+#include <hidclass.h>
+#else
 #include <ddk/hidsdi.h>
 #include <ddk/hidclass.h>
+#endif
 
 HANDLE open_usb_device(int vid, int pid)
 {
@@ -845,10 +851,10 @@ static unsigned char firmware_image[MAX_MEMORY_SIZE];
 static unsigned char firmware_mask[MAX_MEMORY_SIZE];
 static int end_record_seen=0;
 static int byte_count;
-static unsigned int extended_addr = 0;
+static int extended_addr = 0;
 static int parse_hex_line(char *line);
 
-int read_intel_hex(const char *filename)
+int read_intel_hex(const char *filepath)
 {
 	FILE *fp;
 	int i, lineno=0;
@@ -862,9 +868,9 @@ int read_intel_hex(const char *filename)
 	}
 	extended_addr = 0;
 
-	fp = fopen(filename, "r");
+	fp = fopen(filepath, "r");
 	if (fp == NULL) {
-		//printf("Unable to read file %s\n", filename);
+		//printf("Unable to read file %s\n", filepath);
 		return -1;
 	}
 	while (!feof(fp)) {
@@ -948,7 +954,7 @@ parse_hex_line(char *line)
 	while (num != len) {
 		if (sscanf(ptr, "%02x", &i) != 1) return 0;
 		i &= 255;
-		firmware_image[addr + extended_addr + num] = i;
+		firmware_image[addr + extended_addr + num] = (unsigned char)i;
 		firmware_mask[addr + extended_addr + num] = 1;
 		ptr += 2;
 		sum += i;
@@ -994,14 +1000,14 @@ void ihex_get_data(int addr, int len, unsigned char *bytes)
 	}
 }
 
-int memory_is_blank(int addr, int block_size)
+int memory_is_blank(int addr, int block_length)
 {
 	if (addr < 0 || addr > MAX_MEMORY_SIZE) return 1;
 
-	while (block_size && addr < MAX_MEMORY_SIZE) {
+	while (block_length && addr < MAX_MEMORY_SIZE) {
 		if (firmware_mask[addr] && firmware_image[addr] != 255) return 0;
 		addr++;
-		block_size--;
+		block_length--;
 	}
 	return 1;
 }
@@ -1032,7 +1038,7 @@ int printf_verbose(const char *format, ...)
 void delay(double seconds)
 {
 	#ifdef WIN32
-	Sleep(seconds * 1000.0);
+	Sleep((DWORD)(seconds * 1000.0));
 	#else
 	usleep(seconds * 1000000.0);
 	#endif
