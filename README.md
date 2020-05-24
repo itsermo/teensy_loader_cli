@@ -4,9 +4,9 @@ The Teensy Loader is available in a command line version for advanced users who 
 
 http://www.pjrc.com/teensy/loader_cli.html
 
-This version has CMake support and builds on Visual Studio/Windows platforms with no need for mingw.
-
 The command line version is provided as source code for most platforms. To compile, you must have gcc or visual studio installed.
+
+* Note: * This version uses CMake to generate projects, and builds on Visual Studio/Windows platforms with no need for mingw.  In order to support Visual Studio, we have added some POSIX compatibility code (`getopt.h` and `unistd.h`) in the folder `unistd-win32`.
 
 ## Compiling From Source (Windows & Visual Studio)
 
@@ -139,7 +139,7 @@ SDK ?= /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Deve
 
 ## CMake Integration
 
-TODO: Make CMake targets that can be integrated into your CMake project list for programming teensy
+- [ ] TODO: Create CMake functions that can be used to build teensy_loader_cli and integrate teensy programming command as a target in CMake projects
 
 ## PlatformIO Integration
 
