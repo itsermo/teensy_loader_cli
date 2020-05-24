@@ -62,7 +62,7 @@ You must first install XCode and/or XCode Command Line Tools & CMake.  You can u
     
     by default, the CMake command line generator will generate a Unix Makefile.  That's ok and can be used.  Alternatively you can create an XCode project if you prefer:
     
-    `cmake -b build-macos -G "Xcode"
+    `cmake -b build-macos -G "Xcode"`
     
 2. Build using the command
 
