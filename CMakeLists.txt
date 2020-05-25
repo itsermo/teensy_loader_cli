@@ -3,7 +3,35 @@ cmake_minimum_required(VERSION 3.10)
 # set the project name
 project(teensy_loader_cli C)
 
-# add the executable
+# find the current architecture
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/TargetArch.cmake)
+target_architecture(TARGET_ARCH)
+
+if(${TARGET_ARCH} STREQUAL "i386")
+    set(TARGET_ARCH "x86")
+endif()
+
+if(WIN32)
+    set(TARGET_SYSTEM_PREFIX "win")
+elseif(APPLE)
+    set(TARGET_SYSTEM_PREFIX "macos")
+else()
+    string(TOLOWER ${CMAKE_SYSTEM_NAME} TARGET_SYSTEM_PREFIX)
+endif()
+
+# set output path to bin/os-arch folder
+set(ARCH_DIR_NAME ${TARGET_SYSTEM_PREFIX}-${TARGET_ARCH})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin/${ARCH_DIR_NAME})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_LIST_DIR}/bin/${ARCH_DIR_NAME})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_LIST_DIR}/bin/${ARCH_DIR_NAME})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH_DIR_NAME})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH_DIR_NAME})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH_DIR_NAME})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH_DIR_NAME})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH_DIR_NAME})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH_DIR_NAME})
+
+# add the executable target
 add_executable(teensy_loader_cli teensy_loader_cli.c)
 
 # project generator options
@@ -21,11 +49,10 @@ elseif(APPLE)
         set(USE_LIBUSB TRUE)
         target_compile_definitions(teensy_loader_cli PRIVATE "USE_LIBUSB" "MACOSX")
     endif()
-elseif(${CMAKE_SYSTEM} MATCHES "Linux")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(USE_LIBUSB TRUE)
     target_compile_definitions(teensy_loader_cli PRIVATE "USE_LIBUSB")
 else()
-message(FATAL_ERROR "${CMAKE_SYSTEM}")
     target_compile_definitions(teensy_loader_cli PRIVATE "USE_UHID")
 endif()
 
