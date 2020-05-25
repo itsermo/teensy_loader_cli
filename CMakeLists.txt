@@ -59,7 +59,11 @@ endif()
 # if using libusb, search for libusb path
 # and add its include path and link the usb lib
 if(USE_LIBUSB)
-    find_path(LIBUSB_INCLUDE_DIR NAMES libusb.h PATH_SUFFIXES "include" "libusb" "libusb-1.0")
+    if(APPLE)
+        find_path(LIBUSB_INCLUDE_DIR NAMES usb.h PATH_SUFFIXES "include")
+    else()
+        find_path(LIBUSB_INCLUDE_DIR NAMES libusb.h PATH_SUFFIXES "include" "libusb" "libusb-1.0")
+    endif()
     find_library(LIBUSB_LIBRARY NAMES usb PATH_SUFFIXES "lib" "lib32" "lib64" )
     target_include_directories(teensy_loader_cli PRIVATE ${LIBUSB_INCLUDE_DIR})
     target_link_libraries(teensy_loader_cli ${LIBUSB_LIBRARY})
