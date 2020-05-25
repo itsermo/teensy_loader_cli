@@ -86,3 +86,39 @@ if(MSVC)
 elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(teensy_loader_cli PRIVATE -s -Wall -Wextra -pedantic -Werror)
 endif()
+
+list(APPEND TEENSY_MCU_LIST 
+"at90usb162"
+"atmega32u4"
+"at90usb646"
+"at90usb1286"
+"mkl26z64"
+"mk20dx128"
+"mk20dx256"
+"mk66fx1m0"
+"mk64fx512"
+"imxrt1062"
+"TEENSY2"
+"TEENSY2PP"
+"TEENSYLC"
+"TEENSY30"
+"TEENSY31"
+"TEENSY32"
+"TEENSY35"
+"TEENSY36"
+"TEENSY40"
+)
+function(add_teensy_flash_target target mcu wait)
+    if("${mcu}" IN_LIST TEENSY_MCU_LIST)
+        if(wait)
+            add_custom_target(flash-teensy-${target} COMMAND teensy_loader_cli "--mcu=${mcu}" "-w" "-v" "$<TARGET_FILE:${target}>")
+        else()
+            add_custom_target(flash-teensy-${target} COMMAND teensy_loader_cli "--mcu=${mcu}" "-v" "$<TARGET_FILE:${target}>")
+        endif()
+    else()
+        message(FATAL_ERROR "Teensy MCU \"${mcu}\" is not valid. You must select one of the following: ${TEENSY_MCU_LIST}")
+    endif()
+endfunction(add_teensy_flash_target)
+
+# to add a teensy flash target, you can just add your project name and MCU as per the example below
+# add_teensy_flash_target(${PROJECT_NAME} TEENSY40 TRUE)
