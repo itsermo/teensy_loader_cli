@@ -19,19 +19,81 @@ list(APPEND TEENSY_MCU_LIST
     "TEENSY36"
     "TEENSY40"
 )
-function(add_teensy_flash_target target mcu wait)
-    if("${mcu}" IN_LIST TEENSY_MCU_LIST)
-        set(file_dir "$<TARGET_FILE_DIR:${target}>")
-        set(file_name "$<TARGET_FILE_BASE_NAME:${target}>")
-        if(NOT TARGET flash-teensy)
-            add_custom_target(flash-teensy)
-        endif()
+
+macro(generate_teensy_args_list args mcu wait hard_reboot soft_reboot no_reboot boot_only verbose hex_file)
+        
+        set(teensy_cli_args "--mcu=${mcu}")
+        
         if(${wait})
-            add_custom_command(TARGET flash-teensy POST_BUILD COMMAND ${TEENSY_LOADER_COMMAND} "--mcu=${mcu}" "-w" "-v" "${file_dir}/${file_name}.hex")
-        else()
-            add_custom_command(TARGET flash-teensy POST_BUILD COMMAND ${TEENSY_LOADER_COMMAND} "--mcu=${mcu}" "-v" "${file_dir}/${file_name}.hex")
+            set(teensy_cli_args "${teensy_cli_args} -w")
         endif()
-        add_dependencies(flash-teensy ${target})
+        if(${hard_reboot})
+            set(teensy_cli_args "${teensy_cli_args} -r")
+        endif()
+        if(${soft_reboot})
+            set(teensy_cli_args "${teensy_cli_args} -s")
+        endif()
+        if(${no_reboot})
+            set(teensy_cli_args "${teensy_cli_args} -n")
+        endif()
+        if(${boot_only})
+            set(teensy_cli_args "${teensy_cli_args} -b")
+        endif()
+        if(${verbose})
+            set(teensy_cli_args "${teensy_cli_args} -v")
+        endif()
+
+        set(teensy_cli_args "${teensy_cli_args} ${hex_file}")
+
+        separate_arguments(args NATIVE_COMMAND ${teensy_cli_args})
+
+endmacro()
+
+function(add_teensy_flash_target target mcu wait hard_reboot soft_reboot no_reboot boot_only verbose)
+    if("${mcu}" IN_LIST TEENSY_MCU_LIST)
+        # Create a custom utility target for flashing teensy
+        add_custom_target(flash-${target})
+
+        # Create the argument list for the teensy_loader_cli
+        generate_teensy_args_list(
+            args
+            ${mcu}
+            ${wait}
+            ${hard_reboot}
+            ${soft_reboot}
+            ${no_reboot}
+            ${boot_only}
+            ${verbose}
+            "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_BASE_NAME:${target}>.hex"
+        )
+
+        # Add a post-build command to call teensy_loader_cli
+        add_custom_command(TARGET flash-${target} POST_BUILD COMMAND ${TEENSY_LOADER_COMMAND} ${args})
+
+        # Add this utility target to the dependency chain of your target
+        add_dependencies(flash-${target} ${target})
+    else()
+        message(FATAL_ERROR "Teensy MCU \"${mcu}\" is not valid. You must select one of the following: ${TEENSY_MCU_LIST}")
+    endif()
+endfunction()
+
+function(add_teensy_flash_command target mcu wait hard_reboot soft_reboot no_reboot boot_only verbose)
+    if("${mcu}" IN_LIST TEENSY_MCU_LIST)
+        # Create the argument list for the teensy_loader_cli
+        generate_teensy_args_list(
+            args
+            ${mcu}
+            ${wait}
+            ${hard_reboot}
+            ${soft_reboot}
+            ${no_reboot}
+            ${boot_only}
+            ${verbose}
+            "$<TARGET_FILE_DIR:${target}>/$<TARGET_FILE_BASE_NAME:${target}>.hex"
+        )
+
+        # Create a post-build command for your target that calls the teensy_loader_cli command
+        add_custom_command(TARGET ${target} POST_BUILD COMMAND ${TEENSY_LOADER_COMMAND} ${args})
     else()
         message(FATAL_ERROR "Teensy MCU \"${mcu}\" is not valid. You must select one of the following: ${TEENSY_MCU_LIST}")
     endif()
